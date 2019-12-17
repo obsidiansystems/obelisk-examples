@@ -25,7 +25,7 @@ import Common.Schema
 
 data BackendRoute :: * -> * where
   BackendRoute_Missing :: BackendRoute ()
-  BackendRoute_Get_Url :: BackendRoute (Id Url)
+  BackendRoute_GetUrl :: BackendRoute (Id Url)
   BackendRoute_Shorten :: BackendRoute ()
 
 data FrontendRoute :: * -> * where
@@ -43,7 +43,7 @@ fullRouteEncoder = mkFullRouteEncoder
   (FullRoute_Backend BackendRoute_Missing :/ ())
   (\case
       BackendRoute_Shorten -> PathSegment "create" $ unitEncoder mempty
-      BackendRoute_Get_Url -> PathSegment "s" idPathSegmentEncoder
+      BackendRoute_GetUrl -> PathSegment "s" idPathSegmentEncoder
       BackendRoute_Missing -> PathSegment "missing" $ unitEncoder mempty)
   (\case
       FrontendRoute_Main -> PathEnd $ unitEncoder mempty)

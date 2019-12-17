@@ -11,13 +11,14 @@ import Control.Monad.IO.Class (liftIO)
 import qualified Data.Aeson as A
 import Data.ByteString.Lazy (toStrict)
 import Data.Text (Text)
+import Data.Text.Encoding (encodeUtf8)
 import Data.Word (Word64)
-import Database.Id.Class (unId)
+import Database.Id.Class (Id(..), unId)
 import Data.Pool (withResource)
 import Database.PostgreSQL.Simple (execute_, Query, query)
 import Gargoyle.PostgreSQL.Connect (withDb)
 import Obelisk.Backend (Backend(..), _backend_run, _backend_routeEncoder)
-import Obelisk.Route (pattern (:/))
+import Obelisk.Route (renderBackendRoute, renderFrontendRoute, pattern (:/))
 import qualified Snap.Core as S
 
 maxUrlSize :: Word64
@@ -49,9 +50,12 @@ backend = Backend
             [[key]] <- liftIO $ withResource pool $ \dbcon ->
                 query dbcon "INSERT INTO urls (url) VALUES (?) RETURNING id" [url :: Text]
             S.modifyResponse $ S.setResponseStatus 200 "OK"
-            S.writeBS $ toStrict $ A.encode $ ("/s/" <>) $ show (key :: Int)
+            S.writeBS $ toStrict $ A.encode
+              $ renderBackendRoute R.checkedFullRouteEncoder
+              $ R.BackendRoute_GetUrl :/ Id key
 
-          _ -> S.redirect "/"
+          _ -> S.redirect $ encodeUtf8 $ renderFrontendRoute R.checkedFullRouteEncoder $
+            R.FrontendRoute_Main :/ ()
       return ()
   , _backend_routeEncoder = R.fullRouteEncoder
   }

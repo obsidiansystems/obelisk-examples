@@ -16,7 +16,6 @@ import Database.Id.Class
 import Data.Pool
 import Database.PostgreSQL.Simple
 import Gargoyle.PostgreSQL.Connect
-import Prelude hiding (id)
 import Obelisk.Backend
 import Obelisk.Route
 import Snap.Core
@@ -35,27 +34,23 @@ backend = Backend
         _ <- withResource pool $ \dbcon -> execute dbcon migration [maxUrlSize]
         serve $ \case
 
-          BackendRoute_Get_Url :/ id -> do
+          BackendRoute_Get_Url :/ key -> do
             result <- liftIO $ withResource pool $ \dbcon ->
-              query dbcon "SELECT (url) FROM urls WHERE id = ?;" [unId id]
+              query dbcon "SELECT (url) FROM urls WHERE id = ?;" [unId key]
             case result of
               [[url]] -> redirect url
               _ -> do
                 modifyResponse $ setResponseStatus 404 "Not Found"
+                modifyResponse $ setContentType "text/plain; charset=utf8"
                 writeText "That shortlink wasn't found ¯\\_(ツ)_/¯"
-                r <- getResponse
-                finishWith $ setContentType "text/plain; charset=utf8" r
 
           BackendRoute_Shorten :/ () -> do
             Just url <- A.decode <$> readRequestBody maxUrlSize
-            [[id]] <- liftIO $ withResource pool $ \dbcon -> do
-                _ <- execute dbcon "INSERT INTO urls (url) values (?);" [url :: Text]
+            [[key]] <- liftIO $ withResource pool $ \dbcon -> do
+                _ <- execute dbcon "INSERT INTO urls (url) VALUES (?);" [url :: Text]
                 query_ dbcon "SELECT last_value FROM urls_id_seq;"
-            liftIO $ threadDelay 1000000
             modifyResponse $ setResponseStatus 200 "OK"
-            writeBS $ toStrict $ A.encode $ ("/s/" <>) $ show (id :: Int)
-            r <- getResponse
-            finishWith r
+            writeBS $ toStrict $ A.encode $ ("/s/" <>) $ show (key :: Int)
 
           _ -> redirect "/"
       return ()

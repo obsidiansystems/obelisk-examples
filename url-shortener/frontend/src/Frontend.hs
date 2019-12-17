@@ -71,13 +71,12 @@ createdLink = \case
   Loading -> text "shortening..."
   Loaded a -> case a of
     Nothing -> text "Error"
-    Just url -> elAttr "a" ("href" =: url) $ text url
+    Just url -> elAttr "a" ("href" =: url <> "target" =: "_blank") $ text url
 
 app :: AppWidget js t m => m ()
 app = do
   state <- el "div" $ urlInput
-  _ <- dyn $ createdLink <$> state
-  blank
+  dyn_ $ createdLink <$> state
 
 frontend :: Frontend (R FrontendRoute)
 frontend = Frontend

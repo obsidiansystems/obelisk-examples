@@ -57,7 +57,6 @@ urlInput = do
       ((decodeXhrResponse <$>) <$> performRequestAsync (shortenRequest <$> url))
     state <- holdDyn NotStarted $
       leftmost [Loading <$ click, Loaded <$> switchDyn request]
-    _ <- pure state
   pure state
 
 createShortLinkRoute :: Text

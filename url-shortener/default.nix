@@ -13,7 +13,6 @@ in with obelisk;
 project ./. ({ ... }: {
   packages = {
     database-id-class = deps.database-id + /class;
-    database-id-groundhog = deps.database-id + /groundhog;
     database-id-obelisk = deps.database-id + /obelisk;
   };
   overrides = self: super: import dep/gargoyle self // {

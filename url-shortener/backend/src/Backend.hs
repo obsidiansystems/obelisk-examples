@@ -14,7 +14,7 @@ import Data.Text (Text)
 import Data.Word (Word64)
 import Database.Id.Class (unId)
 import Data.Pool (withResource)
-import Database.PostgreSQL.Simple (execute, Query, query, query_)
+import Database.PostgreSQL.Simple (execute, Query, query)
 import Gargoyle.PostgreSQL.Connect (withDb)
 import Obelisk.Backend (Backend(..), _backend_run, _backend_routeEncoder)
 import Obelisk.Route (pattern (:/))
@@ -25,7 +25,7 @@ maxUrlSize = 2000
 
 migration :: Query
 migration = "CREATE TABLE IF NOT EXISTS urls\
-  \ (id SERIAL PRIMARY KEY, url VARCHAR(?) NOT NULL);"
+  \ (id SERIAL PRIMARY KEY, url VARCHAR(?) NOT NULL)"
 
 backend :: Backend R.BackendRoute R.FrontendRoute
 backend = Backend
@@ -36,7 +36,7 @@ backend = Backend
 
           R.BackendRoute_GetUrl :/ key -> do
             result <- liftIO $ withResource pool $ \dbcon ->
-              query dbcon "SELECT (url) FROM urls WHERE id = ?;" [unId key]
+              query dbcon "SELECT (url) FROM urls WHERE id = ?" [unId key]
             case result of
               [[url]] -> S.redirect url
               _ -> do
@@ -46,9 +46,8 @@ backend = Backend
 
           R.BackendRoute_Shorten :/ () -> do
             Just url <- A.decode <$> S.readRequestBody maxUrlSize
-            [[key]] <- liftIO $ withResource pool $ \dbcon -> do
-                _ <- execute dbcon "INSERT INTO urls (url) VALUES (?);" [url :: Text]
-                query_ dbcon "SELECT last_value FROM urls_id_seq;"
+            [[key]] <- liftIO $ withResource pool $ \dbcon ->
+                query dbcon "INSERT INTO urls (url) VALUES (?) RETURNING id" [url :: Text]
             S.modifyResponse $ S.setResponseStatus 200 "OK"
             S.writeBS $ toStrict $ A.encode $ ("/s/" <>) $ show (key :: Int)
 

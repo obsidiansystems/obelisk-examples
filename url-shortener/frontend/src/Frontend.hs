@@ -51,7 +51,7 @@ urlInput = do
     (submitBtn,_) <- elAttr "span" ("id" =: "submit") $
       elDynAttr' "button" (submitAttrs <$> state) $ text "shorten"
     let click = domEvent Click submitBtn
-    let url = tagDyn (_inputElement_value inputEl) click
+    let url = tag (current $ _inputElement_value inputEl) click
     request <- prerender
       (pure never)
       ((decodeXhrResponse <$>) <$> performRequestAsync (shortenRequest <$> url))

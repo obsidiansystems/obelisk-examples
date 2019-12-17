@@ -14,7 +14,7 @@ import Data.Text (Text)
 import Data.Word (Word64)
 import Database.Id.Class (unId)
 import Data.Pool (withResource)
-import Database.PostgreSQL.Simple (execute, Query, query)
+import Database.PostgreSQL.Simple (execute_, Query, query)
 import Gargoyle.PostgreSQL.Connect (withDb)
 import Obelisk.Backend (Backend(..), _backend_run, _backend_routeEncoder)
 import Obelisk.Route (pattern (:/))
@@ -25,13 +25,13 @@ maxUrlSize = 2000
 
 migration :: Query
 migration = "CREATE TABLE IF NOT EXISTS urls\
-  \ (id SERIAL PRIMARY KEY, url VARCHAR(?) NOT NULL)"
+  \ (id SERIAL PRIMARY KEY, url TEXT NOT NULL)"
 
 backend :: Backend R.BackendRoute R.FrontendRoute
 backend = Backend
   { _backend_run = \serve -> do
       withDb "db" $ \pool -> do
-        _ <- withResource pool $ \dbcon -> execute dbcon migration [maxUrlSize]
+        _ <- withResource pool $ \dbcon -> execute_ dbcon migration
         serve $ \case
 
           R.BackendRoute_GetUrl :/ key -> do

@@ -82,7 +82,7 @@ frontend :: Frontend (R FrontendRoute)
 frontend = Frontend
   { _frontend_head = do
       el "title" $ text "Url Shortener"
-      elAttr "link" ("rel" =: "stylesheet" <> "href" =: static @"style.css") blank
       elAttr "link" ("rel" =: "stylesheet" <> "href" =: "https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.1/normalize.css") blank
+      elAttr "link" ("rel" =: "stylesheet" <> "href" =: static @"style.css") blank
   , _frontend_body = app
   }

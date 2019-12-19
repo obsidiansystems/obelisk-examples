@@ -47,7 +47,7 @@ submitAttrs = \case
 urlInput :: AppWidget js t m => m (Dynamic t State)
 urlInput = do
   rec
-    inputEl <- inputElement $ def
+    inputEl <- inputElement def
     (submitBtn,_) <- elAttr "span" ("id" =: "submit") $
       elDynAttr' "button" (submitAttrs <$> state) $ text "shorten"
     let click = domEvent Click submitBtn
@@ -75,7 +75,7 @@ createdLink = \case
 
 app :: AppWidget js t m => m ()
 app = do
-  state <- el "div" $ urlInput
+  state <- el "div" urlInput
   dyn_ $ createdLink <$> state
 
 frontend :: Frontend (R FrontendRoute)

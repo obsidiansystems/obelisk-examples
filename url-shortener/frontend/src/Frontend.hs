@@ -54,7 +54,7 @@ urlInput = do
     let url = tag (current $ _inputElement_value inputEl) click
     request <- prerender
       (pure never)
-      ((fmap decodeXhrResponse) <$> performRequestAsync (shortenRequest <$> url))
+      (fmap decodeXhrResponse <$> performRequestAsync (shortenRequest <$> url))
     state <- holdDyn NotStarted $
       leftmost [Loading <$ click, Loaded <$> switchDyn request]
   pure state

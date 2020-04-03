@@ -4,6 +4,7 @@
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 module Backend where
 
 import qualified Common.Route as R
@@ -47,12 +48,11 @@ backend = Backend
 
           R.BackendRoute_Shorten :/ () -> do
             Just url <- A.decode <$> S.readRequestBody maxUrlSize
-            [[key]] <- liftIO $ withResource pool $ \dbcon ->
+            _ :: [[Integer]] <- liftIO $ withResource pool $ \dbcon ->
                 query dbcon "INSERT INTO urls (url) VALUES (?) RETURNING id" [url :: Text]
             S.modifyResponse $ S.setResponseStatus 200 "OK"
             S.writeBS $ toStrict $ A.encode
-              $ renderBackendRoute R.checkedFullRouteEncoder
-              $ R.BackendRoute_GetUrl :/ Id key
+              url
 
           _ -> S.redirect $ encodeUtf8 $ renderFrontendRoute R.checkedFullRouteEncoder $
             R.FrontendRoute_Main :/ ()

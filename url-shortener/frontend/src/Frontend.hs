@@ -77,6 +77,7 @@ app :: AppWidget js t m => m ()
 app = do
   state <- el "div" urlInput
   dyn_ $ createdLink <$> state
+  el "div" $ text "\1043892"
 
 frontend :: Frontend (R FrontendRoute)
 frontend = Frontend

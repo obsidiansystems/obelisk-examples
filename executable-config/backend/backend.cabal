@@ -14,7 +14,7 @@ library
                , obelisk-route
   exposed-modules:
     Backend
-  ghc-options: -Wall -Wredundant-constraints -Wincomplete-uni-patterns -Wincomplete-record-updates -O -fno-show-valid-hole-fits
+  ghc-options: -Wall -Wredundant-constraints -Wincomplete-uni-patterns -Wincomplete-record-updates -O -fno-show-valid-hole-fits -optL -q
 
 executable backend
   main-is: main.hs

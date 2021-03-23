@@ -1,0 +1,19 @@
+html {
+  background-color: #eee;
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  align-items: center;
+  justify-content: center;
+}
+
+textarea {
+  width: 800px;
+  max-width: 90vw;
+  height: 600px;
+  max-height: 80vh;
+  margin-bottom: 8px;
+}

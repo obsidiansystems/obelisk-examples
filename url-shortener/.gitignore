@@ -1,0 +1,9 @@
+db
+cabal.project.local
+dist-newstyle
+result
+result-android
+result-ios
+result-exe
+.attr-cache
+ghcid-output.txt

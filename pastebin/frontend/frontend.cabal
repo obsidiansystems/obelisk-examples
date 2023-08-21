@@ -7,6 +7,8 @@ library
   hs-source-dirs: src
   build-depends: base
                , common
+               , containers
+               , jsaddle
                , obelisk-frontend
                , obelisk-route
                , reflex-dom

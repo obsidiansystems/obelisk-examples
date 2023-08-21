@@ -4,6 +4,7 @@
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecursiveDo #-}
+{-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE TypeApplications #-}
 module Frontend where
 
@@ -19,21 +20,20 @@ import Common.Api
 import Common.Route
 import Obelisk.Generated.Static
 
-type AppWidget js t m =
+type AppWidget t m =
   ( DomBuilder t m
   , MonadFix m
   , MonadHold t m
   , TriggerEvent t m
   , PostBuild t m
   , PerformEvent t m
-  , Prerender js t m
+  , Prerender t m
   )
 
-type FrontendWidget js t m =
-  ( AppWidget js t m
+type FrontendWidget t m =
+  ( AppWidget t m
   , MonadJSM m
   , MonadJSM (Performable m)
-  , HasJSContext (Performable m)
   )
 
 data State = NotStarted | Loading | Loaded (Maybe Text)
@@ -44,7 +44,7 @@ submitAttrs = \case
   Loading -> ("disabled" =: "true")
   _ -> mempty
 
-urlInput :: AppWidget js t m => m (Dynamic t State)
+urlInput :: AppWidget t m => m (Dynamic t State)
 urlInput = do
   rec
     inputEl <- inputElement def
@@ -65,7 +65,7 @@ createShortLinkRoute = renderBackendRoute checkedFullRouteEncoder $ BackendRoute
 shortenRequest :: Text -> XhrRequest Text
 shortenRequest s = postJson createShortLinkRoute (ShortenRequest s)
 
-createdLink :: AppWidget js t m => State -> m ()
+createdLink :: AppWidget t m => State -> m ()
 createdLink = \case
   NotStarted -> blank
   Loading -> text "shortening..."
@@ -73,7 +73,7 @@ createdLink = \case
     Nothing -> text "Error"
     Just url -> elAttr "a" ("href" =: url <> "target" =: "_blank") $ text url
 
-app :: AppWidget js t m => m ()
+app :: AppWidget t m => m ()
 app = do
   state <- el "div" urlInput
   dyn_ $ createdLink <$> state
@@ -83,6 +83,6 @@ frontend = Frontend
   { _frontend_head = do
       el "title" $ text "Url Shortener"
       elAttr "link" ("rel" =: "stylesheet" <> "href" =: "https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.1/normalize.css") blank
-      elAttr "link" ("rel" =: "stylesheet" <> "href" =: static @"style.css") blank
+      elAttr "link" ("rel" =: "stylesheet" <> "href" =: $(static "style.css")) blank
   , _frontend_body = app
   }

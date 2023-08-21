@@ -1,19 +1,21 @@
 {-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE GADTs #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecursiveDo #-}
+{-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE TypeApplications #-}
 module Frontend where
 
-import GHC.Int
-import Database.Id.Class (Id(..))
+import Control.Monad.Fix (MonadFix)
 import qualified Data.Map as M
 import Data.Text (Text)
-import Reflex.Dom.Core
-import Control.Monad.Fix (MonadFix)
+import Database.Id.Class (Id(..))
+import GHC.Int
 import Language.Javascript.JSaddle (MonadJSM)
+import Reflex.Dom.Core
 
 import Obelisk.Frontend
 import Obelisk.Generated.Static
@@ -24,19 +26,18 @@ import Common.Api
 import Common.Route
 import Common.Schema
 
-type AppWidget js t m =
+type AppWidget t m =
   ( DomBuilder t m
   , MonadFix m
   , MonadHold t m
   , PerformEvent t m
   , PostBuild t m
-  , Prerender js t m
+  , Prerender t m
   , TriggerEvent t m
   )
 
-type WidgetWithJS js t m =
-  ( AppWidget js t m
-  , HasJSContext (Performable m)
+type WidgetWithJS t m =
+  ( AppWidget t m
   , MonadJSM (Performable m)
   , MonadJSM m
   )
@@ -49,7 +50,7 @@ pasteAttrs = \case
   Loading -> ("disabled" =: "true")
   _ -> mempty
 
-pasteInput :: AppWidget js t m => m (Dynamic t State)
+pasteInput :: AppWidget t m => m (Dynamic t State)
 pasteInput = do
   rec
     inputEl <- textAreaElement def
@@ -70,10 +71,10 @@ createPasteRoute = renderBackendRoute checkedFullRouteEncoder $ BackendRoute_MkP
 pasteRequest :: Text -> XhrRequest Text
 pasteRequest s = postJson createPasteRoute (PasteRequest s)
 
-viewPlaceholder :: AppWidget js t m => m ()
+viewPlaceholder :: AppWidget t m => m ()
 viewPlaceholder = text "Loading paste..."
 
-showPasteResult :: AppWidget js t m => Maybe Text -> m ()
+showPasteResult :: AppWidget t m => Maybe Text -> m ()
 showPasteResult = \case
   Nothing -> text "Paste not found ¯\\_(ツ)_/¯"
   Just t -> el "pre" $ text t
@@ -81,7 +82,7 @@ showPasteResult = \case
 getPasteUrl :: Id Paste -> Text
 getPasteUrl pasteId = renderBackendRoute checkedFullRouteEncoder $ BackendRoute_GetPaste :/ pasteId
 
-viewClientSide :: WidgetWithJS js t m => Dynamic t (Id Paste) -> m ()
+viewClientSide :: WidgetWithJS t m => Dynamic t (Id Paste) -> m ()
 viewClientSide pasteId = do
   onload <- getPostBuild
   initialPasteLoad <- getAndDecode $ getPasteUrl <$> tag (current pasteId) onload
@@ -92,7 +93,7 @@ stateToMaybeKey = \case
   Loaded key -> key
   _ -> Nothing
 
-app :: (AppWidget js t m, SetRoute t (R FrontendRoute) m) => RoutedT t (R FrontendRoute) m ()
+app :: (AppWidget t m, SetRoute t (R FrontendRoute) m) => RoutedT t (R FrontendRoute) m ()
 app =
   subRoute_ $ \case
     FrontendRoute_Main -> do
@@ -109,6 +110,6 @@ frontend = Frontend
   { _frontend_head = do
       el "title" $ text "Obelisk Pastebin"
       elAttr "link" ("rel" =: "stylesheet" <> "href" =: "https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.1/normalize.css") blank
-      elAttr "link" ("rel" =: "stylesheet" <> "href" =: static @"style.css") blank
+      elAttr "link" ("rel" =: "stylesheet" <> "href" =: $(static "style.css")) blank
   , _frontend_body = app
   }

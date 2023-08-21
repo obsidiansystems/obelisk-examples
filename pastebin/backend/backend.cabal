@@ -8,6 +8,7 @@ library
   if impl(ghcjs)
     buildable: False
   build-depends: base
+               , bytestring
                , common
                , frontend
                , obelisk-backend
@@ -15,7 +16,9 @@ library
                , gargoyle-postgresql-connect
                , database-id-class
                , database-id-obelisk
+               , postgresql-simple
                , resource-pool
+               , snap-core
   exposed-modules:
     Backend
   ghc-options: -Wall

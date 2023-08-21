@@ -15,10 +15,9 @@ project ./. ({ ... }: {
     database-id-class = deps.database-id + /class;
     database-id-obelisk = deps.database-id + /obelisk;
   };
-  overrides = self: super: import dep/gargoyle self // {
-    aeson-gadt-th = (self.callCabal2nix "aeson-gadt-th" deps.aeson-gadt-th {}).overrideAttrs (drv: {
-      configureFlags = drv.configureFlags or [] ++ ["-f-build-readme"]; # Upstream issue: readme doesn't build on ios.
-    });
+  overrides = self: super: {
+    database-id-class = haskellLib.doJailbreak super.database-id-class;
+    database-id-obelisk = haskellLib.doJailbreak super.database-id-obelisk;
   };
   android.applicationId = "systems.obsidian.obelisk.examples.minimal";
   android.displayName = "Obelisk Minimal Example";

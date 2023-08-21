@@ -6,14 +6,17 @@ build-type: Simple
 library
   hs-source-dirs: src
   build-depends: base
-               , aeson-gadt-th
-               , database-id-obelisk
-               , obelisk-route
-               , mtl
-               , text
-  default-extensions:
-    TypeFamilies
-    PolyKinds
-  exposed-modules:
-    Common.Api
-    Common.Route
+             , aeson
+             , aeson-gadt-th
+             , database-id-obelisk
+             , obelisk-route
+             , mtl
+             , text
+             , database-id-class
+default-extensions:
+  ConstraintKinds
+  TypeFamilies
+  PolyKinds
+exposed-modules:
+  Common.Api
+  Common.Route
